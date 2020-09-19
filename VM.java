@@ -3,15 +3,6 @@
 // Prof. Fernando Luís Dotti
 // Trabalho - Parte I
 //
-// Código fornecido pelo professor como uma forma de resolver o enunciado
-// Este código compila e executa na VM o pequeno programa ao final, com somente tres instrucoes diferentes.
-// Alem das definicoes dos elementos solicitados, os cuidados de acesso valido a memoria, instrucoes validas,
-// interrupcoes, o ciclo de instrucao com as tres fases, ja estao contemplados.
-// Pede-se estudar e enteder este codigo. Os alunos podem adotar ideias parecidas.   
-// Falta implementar as demais instrucoes da CPU, assim como os programas solicitados.
-// Este trabalho tem menos de 200 linhas de código.
-// A VM completa, construida pelo professor, incluindo o programa P1, tem 234 linhas.
-
 
 import java.util.*;
 
@@ -20,7 +11,7 @@ public class VM {
 	// --------------------- definicoes de opcode e palavra de memoria ---------------------------------------
 	private enum Opcode {
 		DADO, ___,		    // se memoria nesta posicao tem um dado, usa DADO, se nao usada ee NULO
-		JMP, JMPI, JMPIG, JMPIL, JMPIE, ADDI, SUBI, ANDI, ORI, LDI, LDD, STD, ADD, SUB, MULT, LDX, STX, SWAP, STOP;
+		JMP, JMPI, JMPIG, JMPIL, JMPIE,JMPIM, JMPIGM, JMPILM, JMPIEM, ADDI, SUBI, ANDI, ORI, LDI, LDD, STD, ADD, SUB, MULT, LDX, STX, SWAP, STOP;
 	}
 
 	private class Word { 	// cada posicao da memoria ee uma plavra, e tem uma instrucao (ou um dado)
@@ -96,28 +87,121 @@ public class VM {
 							break;
 
 						case ADD: // Rd ← Rd + Rs
-							  
+							if(legal(ir.p)){
+								reg[ir.r1] += reg[ir.r2];
+								pc++;
+							};
 							break;
 
 						case ADDI: // Rd ← Rd + k
-							 
+								reg[ir.r1] += m[ir.r2].p;
+								pc++;
 							break;
 
-						case STX: // [Rd] ←Rs
-						    
+						case STX: // [Rd] ← Rs
+								reg[ir.r1] = reg[ir.r2];
 							break;
 
 						case SUB: // Rd ← Rd - Rs
-						 
+								if(legal(ir.p)){
+								reg[ir.r1] -= reg[ir.r2];
+								pc++;
+							}
 							break;
 
 						case JMPIG: // If Rc > 0 Then PC ← Rs Else PC ← PC +1
-							 
+								if(reg[ir.r2] > 0){
+									pc = reg[ir.r1];
+								} else {
+									pc += 1;
+								}
+								pc++;
 							break;
 
-                        // falta entrar no switch JMP,JMPI,JMPIL,JMPIE,ADDI,ANDI,ORI,LDD,MULT,LDX,SWAP;
+						case JMP: // PC ← k
+								
+							break;
 
-						case STOP: //  para execucao
+						case JMPI: // PC ← Rs
+								pc = reg[ir.r1];
+								pc++;
+							break;
+
+						case JMPIL: // if R2 < 0 then PC ← Rs Else PC ← PC +1
+								if(reg[ir.r2] == 0){
+									pc = reg[ir.r1];
+									pc++;
+								} else {
+									pc += 1;
+								}
+								pc++;
+							break;
+
+						case JMPIE: // if Rc = 0 then PC ← Rs Else PC ← PC +1
+								if(reg[ir.r2] == 0){
+									pc = reg[ir.r1];
+									pc++;
+								} else {
+									pc++;
+								}
+								pc++;
+							break;
+
+						// case ANDI: 
+						// 	break;
+						// case ORI:
+						// 	break;
+
+						case LDD: // Rd ← [A]
+								reg[ir.r1] = m[ir.p].p;
+								pc++;
+							break;
+
+						case MULT: // Rd ← Rd * Rs
+								reg[ir.r1] *= reg[ir.r2];
+								pc++;
+							break;
+
+						case LDX: // Rd ← [Rs]
+								reg[ir.r1] = m[ir.r2];
+								pc++;
+							break;
+
+						case JMPIEM: // Rc if R2 = 0 then PC ← [A] Else PC ← PC +1
+								if(reg[ir.r2] == 0){
+									pc = m[ir.p].p;
+								} else {
+									pc += 1;
+								}
+								pc++;
+							break;
+
+						case JMPIGM: // if Rc > 0 then PC ← [A] Else PC ← PC +1
+								if(reg[ir.r2] > 0 ){
+									pc = m[ir.p].p;
+								}	else {
+									pc += 1;
+								}
+								pc++;
+
+							break;
+
+						case JMPILM: // if Rc < 0 then PC ← [A] Else PC ← PC +1
+								if(reg[ir.r2] < 0){
+									pc = m[ir.p].p;
+								}else {
+									pc += 1;
+								}
+								pc++;
+
+							break;
+
+						case JMPIM: // PC ← [A] 
+								pc = m[ir.p].p;
+								pc++;
+							break;
+
+						case STOP: // para execucao
 							irpt = Interrupts.intSTOP;
                             break;
                             
