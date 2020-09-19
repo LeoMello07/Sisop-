@@ -163,7 +163,7 @@ public class VM {
 							break;
 
 						case LDX: // Rd ← [Rs]
-								reg[ir.r1] = m[ir.r2];
+								reg[ir.r1] = m[ir.r2].p;
 								pc++;
 							break;
 
