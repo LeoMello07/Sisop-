@@ -6,6 +6,9 @@
 
 import java.util.*;
 
+import org.graalvm.compiler.nodes.calc.IntegerDivRemNode.Op;
+import org.graalvm.compiler.word.Word;
+
 public class VM {
 
 	// --------------------- definicoes de opcode e palavra de memoria ---------------------------------------
@@ -88,28 +91,35 @@ public class VM {
 
 						case ADD: // Rd ← Rd + Rs
 							if(legal(ir.p)){
-								reg[ir.r1] += reg[ir.r2];
+								m[ir.p].opc = Opcode.DADO;
+								m[ir.p].p =  reg[ir.r1] + reg[ir.r2];
+								//reg[ir.r1] += reg[ir.r2];
 								pc++;
 							};
 							break;
 
 						case ADDI: // Rd ← Rd + k
-								reg[ir.r1] += m[ir.r2].p;
+								m[ir.p].opc = Opcode.DADO;
+								m[ir.p].p =  reg[ir.r1] + m[ir.r2].p;
 								pc++;
 							break;
 
 						case STX: // [Rd] ← Rs
-								reg[ir.r1] = reg[ir.r2];
+								m[ir.p].opc = Opcode.DADO;
+							//	m[ir.r1] = reg[ir.r2];
+								pc++;
 							break;
 
 						case SUB: // Rd ← Rd - Rs
+								m[ir.p].opc = Opcode.DADO;
 								if(legal(ir.p)){
-								reg[ir.r1] -= reg[ir.r2];
+								m[ir.p].p =  reg[ir.r1] - reg[ir.r2];
 								pc++;
 							}
 							break;
 
 						case JMPIG: // If Rc > 0 Then PC ← Rs Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] > 0){
 									pc = reg[ir.r1];
 								} else {
@@ -123,11 +133,13 @@ public class VM {
 							break;
 
 						case JMPI: // PC ← Rs
+								m[ir.p].opc = Opcode.DADO;
 								pc = reg[ir.r1];
 								pc++;
 							break;
 
 						case JMPIL: // if R2 < 0 then PC ← Rs Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] == 0){
 									pc = reg[ir.r1];
 									pc++;
@@ -138,6 +150,7 @@ public class VM {
 							break;
 
 						case JMPIE: // if Rc = 0 then PC ← Rs Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] == 0){
 									pc = reg[ir.r1];
 									pc++;
@@ -153,21 +166,25 @@ public class VM {
 						// 	break;
 
 						case LDD: // Rd ← [A]
+								m[ir.p].opc = Opcode.DADO;
 								reg[ir.r1] = m[ir.p].p;
 								pc++;
 							break;
 
 						case MULT: // Rd ← Rd * Rs
-								reg[ir.r1] *= reg[ir.r2];
+								m[ir.p].opc = Opcode.DADO;
+								m[ir.p].p =  reg[ir.r1] * reg[ir.r2];
 								pc++;
 							break;
 
 						case LDX: // Rd ← [Rs]
+								m[ir.p].opc = Opcode.DADO;
 								reg[ir.r1] = m[ir.r2].p;
 								pc++;
 							break;
 
 						case JMPIEM: // Rc if R2 = 0 then PC ← [A] Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] == 0){
 									pc = m[ir.p].p;
 								} else {
@@ -177,6 +194,7 @@ public class VM {
 							break;
 
 						case JMPIGM: // if Rc > 0 then PC ← [A] Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] > 0 ){
 									pc = m[ir.p].p;
 								}	else {
@@ -187,6 +205,7 @@ public class VM {
 							break;
 
 						case JMPILM: // if Rc < 0 then PC ← [A] Else PC ← PC +1
+								m[ir.p].opc = Opcode.DADO;
 								if(reg[ir.r2] < 0){
 									pc = m[ir.p].p;
 								}else {
@@ -197,6 +216,7 @@ public class VM {
 							break;
 
 						case JMPIM: // PC ← [A] 
+								m[ir.p].opc = Opcode.DADO;	
 								pc = m[ir.p].p;
 								pc++;
 							break;
@@ -262,7 +282,7 @@ public class VM {
 
 	// -------------------------------------------- teste da VM ,  veja classe de programas
 	public void test1(){
-		Word[] p = new Programas().progMinimo;
+		Word[] p = new Programas().progr1;
 		aux.carga(p, m);
 		cpu.setContext(0, tamMem - 1, 0);
 		System.out.println("---------------------------------- programa carregado ");
@@ -281,12 +301,21 @@ public class VM {
    //  -------------------------------------------- programas aa disposicao para copiar na memoria (vide aux.carga)
    private class Programas {
 	   public Word[] progMinimo = new Word[] {
-		    new Word(Opcode.LDI, 0, -1, 999), 		
+		    new Word(Opcode.LDI, 0, -1, 999),
 			new Word(Opcode.STD, 0, -1, 10), 
 			new Word(Opcode.STD, 0, -1, 11), 
 			new Word(Opcode.STD, 0, -1, 12), 
 			new Word(Opcode.STD, 0, -1, 13), 
 			new Word(Opcode.STD, 0, -1, 14), 
-			new Word(Opcode.STOP, -1, -1, -1) };
+			new Word(Opcode.STOP, -1, -1, -1) 
+		};
+
+		public Word[] progr1 = new Word[] {
+			new Word(Opcode.LDI, 0, -1, 10), 
+			new Word(Opcode.LDI, 1, -1, 20), 
+			new Word(Opcode.ADD, 0, 0, 10),  
+			new Word(Opcode.STOP, -1, -1, -1) 
+		};
+
     }
 }
